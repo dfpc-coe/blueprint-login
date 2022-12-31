@@ -1,0 +1,25 @@
+{
+    "name": "@tak-ps/blueprint-login",
+    "version": "1.0.0",
+    "description": "Login blueprint middleware for authenticating - currently based on a single master password",
+    "main": "middleware.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/tak-ps/blueprint-login.git"
+    },
+    "author": "Nick Ingalls <nick@ingalls.ca>",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/tak-ps/blueprint-login/issues"
+    },
+    "homepage": "https://github.com/tak-ps/blueprint-login#readme",
+    "dependencies": {
+    },
+    "devDependencies": {
+        "eslint": "^8.30.0",
+        "eslint-plugin-node": "^11.1.0"
+    }
+}
