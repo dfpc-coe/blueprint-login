@@ -56,7 +56,7 @@ export default class AuthenticationMiddleware {
                 }
 
                 return res.json({
-                    token: jwt.sign({ access: 'user' }, secret)
+                    token: jwt.sign({ access: 'user' }, this.secret)
                 });
             } catch (err) {
                 Err.respond(err, res);
