@@ -1,4 +1,5 @@
 import Err from '@openaddresses/batch-error';
+import jwt from 'jsonwebtoken';
 
 /**
  * Authentication Middleware
@@ -55,7 +56,7 @@ export default class AuthenticationMiddleware {
                 }
 
                 return res.json({
-                    token: '123'
+                    token: jwt.sign({ access: 'user' }, secret)
                 });
             } catch (err) {
                 Err.respond(err, res);
@@ -80,18 +81,39 @@ export default class AuthenticationMiddleware {
                     });
                 }
 
-                if (authorization[1] === config.SigningSecret) {
-                    req.auth = {
-                        access: 'machine'
-                    };
-                } else {
-                    req.auth = false;
+                try {
+                    const decoded = jwt.verify(authorization[1], this.secret);
+                    req.auth = decoded;
+                } catch (err) {
+                    return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
+
             } else {
                 req.auth = false;
             }
 
             return next();
         });
+
+        await router.get('/login', {
+            name: 'Get Login',
+            group: 'Login',
+            res: {
+                type: 'object',
+                required: ['access'],
+                properties: {
+                    access: {
+                        type: 'string'
+                    }
+                }
+            }
+        }, (req, res) => {
+            try {
+                return res.json(req.auth);
+            } catch (err) {
+                Err.respond(err, res);
+            }
+        });
+
     }
 }

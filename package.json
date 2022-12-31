@@ -19,7 +19,8 @@
     },
     "homepage": "https://github.com/tak-ps/blueprint-login#readme",
     "dependencies": {
-        "@openaddresses/batch-error": "^1.1.0"
+        "@openaddresses/batch-error": "^1.1.0",
+        "jsonwebtoken": "^9.0.0"
     },
     "devDependencies": {
         "eslint": "^8.30.0",
