@@ -1,6 +1,7 @@
 {
     "name": "@tak-ps/blueprint-login",
-    "version": "1.0.0",
+    "type": "module",
+    "version": "0.0.1",
     "description": "Login blueprint middleware for authenticating - currently based on a single master password",
     "main": "middleware.js",
     "scripts": {
@@ -17,6 +18,7 @@
     },
     "homepage": "https://github.com/tak-ps/blueprint-login#readme",
     "dependencies": {
+        "@openaddresses/batch-error": "^1.1.0"
     },
     "devDependencies": {
         "eslint": "^8.30.0",
