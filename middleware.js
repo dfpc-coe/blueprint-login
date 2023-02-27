@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
  *
  * @param {Object} opts Options Object
  * @param {String} opts.secret
+ * @param {String} opts.unsafe
  * @param {String} opts.username
  * @param {String} opts.password
  */
@@ -14,6 +15,7 @@ export default class AuthenticationMiddleware {
     constructor(opts) {
         this.name = 'Login Blueprint';
         this.secret = opts.secret;
+        this.unsafe = opts.unsafe;
         this.username = opts.username;
 
         // TODO: This is temproary for now until LDAP is set up
@@ -21,7 +23,7 @@ export default class AuthenticationMiddleware {
         this.password = opts.password;
     }
 
-    async blueprint(router, config) {
+    async blueprint(router) {
         await router.post('/login', {
             name: 'Create Login',
             group: 'Login',
@@ -82,8 +84,17 @@ export default class AuthenticationMiddleware {
                 }
 
                 try {
-                    const decoded = jwt.verify(authorization[1], this.secret);
-                    req.auth = decoded;
+                    try {
+                        const decoded = jwt.verify(authorization[1], this.secret);
+                        req.auth = decoded;
+                    } catch (err) {
+                        if (this.unsafe) {
+                            const decoded = jwt.verify(authorization[1], this.unsafe);
+                            req.auth = decoded;
+                        } else {
+                            throw err;
+                        }
+                    }
                 } catch (err) {
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
