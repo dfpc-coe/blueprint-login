@@ -18,7 +18,7 @@ export default class AuthenticationMiddleware {
         this.unsafe = opts.unsafe;
         this.username = opts.username;
 
-        // TODO: This is temproary for now until LDAP is set up
+        // TODO: This is temp for now until LDAP is set up
         // Don't use unencrypted passwords in production - bcrypt is absolutely required
         this.password = opts.password;
     }
@@ -98,7 +98,24 @@ export default class AuthenticationMiddleware {
                 } catch (err) {
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
+            } else if (req.query.token) {
+                const token = req.query.token;
 
+                try {
+                    try {
+                        const decoded = jwt.verify(token, this.secret);
+                        req.token = decoded;
+                    } catch (err) {
+                        if (this.unsafe) {
+                            const decoded = jwt.verify(token, this.unsafe);
+                            req.token = decoded;
+                        } else {
+                            throw err;
+                        }
+                    }
+                } catch (err) {
+                    return Err.respond(new Err(401, err, 'Invalid Token'), res);
+                }
             } else {
                 req.auth = false;
             }
