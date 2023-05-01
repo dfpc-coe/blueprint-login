@@ -1,26 +1,25 @@
 import Err from '@openaddresses/batch-error';
 import jwt from 'jsonwebtoken';
+import { CookieJar, Cookie } from 'tough-cookie';
+import { CookieAgent } from 'http-cookie-agent/undici';
 
 /**
  * Authentication Middleware
  * @class
  *
  * @param {Object} opts Options Object
- * @param {String} opts.secret
- * @param {String} opts.unsafe
- * @param {String} opts.username
- * @param {String} opts.password
+ * @param {String} opts.secret Signing Secret
+ * @param {String} opts.unsafe Use unsafe Signing Secret
+ * @param {String} [opts.group] LDAP Group to ensure user is a member of
+ * @param {String} opts.api WebTak Marti API to authenticate against
  */
 export default class AuthenticationMiddleware {
     constructor(opts) {
         this.name = 'Login Blueprint';
         this.secret = opts.secret;
         this.unsafe = opts.unsafe;
-        this.username = opts.username;
-
-        // TODO: This is temp for now until LDAP is set up
-        // Don't use unencrypted passwords in production - bcrypt is absolutely required
-        this.password = opts.password;
+        this.api = opts.api;
+        this.group = opts.group;
     }
 
     async blueprint(router) {
@@ -48,13 +47,56 @@ export default class AuthenticationMiddleware {
                     }
                 }
             }
-        }, (req, res) => {
+        }, async (req, res) => {
             try {
-                if (
-                    req.body.username !== this.username
-                    || req.body.password !== this.password
-                ) {
-                    throw new Err(401, null, 'Invalid Credentials');
+                const url = new URL('/oauth/token', this.api);
+                url.searchParams.append('grant_type', 'password');
+                url.searchParams.append('username', req.body.username);
+                url.searchParams.append('password', req.body.password);
+
+                const authres = await fetch(url);
+
+                if (!authres.ok) {
+                    throw new Err(500, new Error(await authres.text()), 'Non-200 Response from Auth Server - Token');
+                }
+
+                const body = await authres.json();
+
+                if (body.error === 'invalid_grant' && body.error_description.startsWith('Bad credentials')) {
+                    throw new Err(400, null, 'Invalid Username or Password');
+                } else if (body.error || !body.access_token) {
+                    throw new Err(500, new Error(body.error_description), 'Unknown Login Error');
+                }
+
+                if (this.group) {
+                    const url = new URL('/Marti/api/groups/all', this.api);
+
+                    const jar = new CookieJar();
+                    await jar.setCookie(new Cookie({
+                        key: 'access_token',
+                        value: body.access_token
+                    }), this.api);
+
+                    const agent = new CookieAgent({ cookies: { jar } });
+
+                    const groupres = await fetch(url, {
+                        credentials: 'include',
+                        dispatcher: agent
+                    });
+
+                    if (!groupres.ok) {
+                        throw new Err(500, new Error(await authres.text()), 'Non-200 Response from Auth Server - Groups');
+                    }
+
+                    const gbody = await groupres.json();
+
+                    const groups = gbody.data.map((d) => {
+                        return d.name
+                    });
+
+                    if (!groups.includes(this.group)) {
+                        throw new Err(403, null, 'Insufficient Group Privileges');
+                    }
                 }
 
                 return res.json({

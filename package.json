@@ -1,8 +1,8 @@
 {
     "name": "@tak-ps/blueprint-login",
     "type": "module",
-    "version": "0.4.0",
-    "description": "Login blueprint middleware for authenticating - currently based on a single master password",
+    "version": "1.0.0",
+    "description": "Login blueprint middleware for authenticating using tak server credentials",
     "main": "middleware.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -20,8 +20,10 @@
     "homepage": "https://github.com/tak-ps/blueprint-login#readme",
     "dependencies": {
         "@openaddresses/batch-error": "^2.1.0",
+        "http-cookie-agent": "^5.0.2",
         "jsonwebtoken": "^9.0.0",
-        "ldapjs": "^2.3.3"
+        "tough-cookie": "^4.1.2",
+        "undici": "^5.22.0"
     },
     "devDependencies": {
         "eslint": "^8.30.0",
