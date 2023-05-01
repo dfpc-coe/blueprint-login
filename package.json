@@ -1,7 +1,7 @@
 {
     "name": "@tak-ps/blueprint-login",
     "type": "module",
-    "version": "0.4.0",
+    "version": "1.0.0",
     "description": "Login blueprint middleware for authenticating using tak server credentials",
     "main": "middleware.js",
     "scripts": {
