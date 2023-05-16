@@ -26,7 +26,7 @@ export default class AuthenticationMiddleware {
         await router.post('/login', {
             name: 'Create Login',
             group: 'Login',
-            req: {
+            body: {
                 type: 'object',
                 required: ['username', 'password'],
                 properties: {
