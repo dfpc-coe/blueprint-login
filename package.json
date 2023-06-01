@@ -6,6 +6,7 @@
     "description": "Login blueprint middleware for authenticating using tak server credentials",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc --build",
         "lint": "eslint middleware.ts"
     },
     "repository": {
