@@ -2,6 +2,23 @@ import Err from '@openaddresses/batch-error';
 import jwt from 'jsonwebtoken';
 import { CookieJar, Cookie } from 'tough-cookie';
 import { CookieAgent } from 'http-cookie-agent/undici';
+import { Request, Response, NextFunction } from 'express';
+
+export interface ConfigOpts {
+    secret: string;
+    unsafe?: string;
+    api: string;
+    group?: string;
+}
+
+export interface AuthRequest extends Request {
+    token?: {
+        access: string;
+    },
+    auth: {
+        access: string;
+    }
+}
 
 /**
  * Authentication Middleware
@@ -14,15 +31,21 @@ import { CookieAgent } from 'http-cookie-agent/undici';
  * @param {String} opts.api WebTak Marti API to authenticate against
  */
 export default class AuthenticationMiddleware {
-    constructor(opts) {
+    name: string;
+    secret: string;
+    unsafe: string | null;
+    api: string;
+    group?: string | null;
+
+    constructor(opts: ConfigOpts) {
         this.name = 'Login Blueprint';
         this.secret = opts.secret;
-        this.unsafe = opts.unsafe;
+        this.unsafe = opts.unsafe || null;
         this.api = opts.api;
-        this.group = opts.group;
+        this.group = opts.group || null;
     }
 
-    async blueprint(router) {
+    async blueprint(router: any) {
         await router.post('/login', {
             name: 'Create Login',
             group: 'Login',
@@ -47,7 +70,7 @@ export default class AuthenticationMiddleware {
                     }
                 }
             }
-        }, async (req, res) => {
+        }, async (req: Request, res: Response) => {
             try {
                 const url = new URL('/oauth/token', this.api);
                 url.searchParams.append('grant_type', 'password');
@@ -81,6 +104,7 @@ export default class AuthenticationMiddleware {
 
                     const groupres = await fetch(url, {
                         credentials: 'include',
+                    // @ts-ignore - dispatcher is not yet supported
                         dispatcher: agent
                     });
 
@@ -88,9 +112,15 @@ export default class AuthenticationMiddleware {
                         throw new Err(500, new Error(await authres.text()), 'Non-200 Response from Auth Server - Groups');
                     }
 
-                    const gbody = await groupres.json();
+                    const gbody: {
+                        data: Array<{
+                            name: string;
+                        }>
+                    }= await groupres.json();
 
-                    const groups = gbody.data.map((d) => {
+                    const groups = gbody.data.map((d: {
+                        name: string
+                    }) => {
                         return d.name
                     });
 
@@ -107,8 +137,8 @@ export default class AuthenticationMiddleware {
             }
         });
 
-        router.router.use((req, res, next) => {
-            if (req.header('authorization')) {
+        router.router.use((req: AuthRequest, res: Response, next: NextFunction) => {
+            if (req.header && req.header('authorization')) {
                 const authorization = req.header('authorization').split(' ');
 
                 if (authorization[0].toLowerCase() !== 'bearer') {
@@ -128,38 +158,48 @@ export default class AuthenticationMiddleware {
                 try {
                     try {
                         const decoded = jwt.verify(authorization[1], this.secret);
-                        req.auth = decoded;
+                        if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+                        req.auth = {
+                            access: decoded.access ? decoded.access : 'unknown'
+                        };
                     } catch (err) {
                         if (this.unsafe) {
                             const decoded = jwt.verify(authorization[1], this.unsafe);
-                            req.auth = decoded;
+                            if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+                            req.auth = {
+                                access: decoded.access ? decoded.access : 'unknown'
+                            };
                         } else {
                             throw err;
                         }
                     }
-                } catch (err) {
+                } catch (err: any) {
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
-            } else if (req.query.token) {
+            } else if (req.query && req.query.token && typeof req.query.token === 'string') {
                 const token = req.query.token;
 
                 try {
                     try {
                         const decoded = jwt.verify(token, this.secret);
-                        req.token = decoded;
+                        if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+                        req.token = {
+                            access: decoded.access ? decoded.access : 'unknown'
+                        };
                     } catch (err) {
                         if (this.unsafe) {
                             const decoded = jwt.verify(token, this.unsafe);
-                            req.token = decoded;
+                            if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+                            req.token = {
+                                access: decoded.access ? decoded.access : 'unknown'
+                            };
                         } else {
                             throw err;
                         }
                     }
-                } catch (err) {
+                } catch (err: any) {
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
-            } else {
-                req.auth = false;
             }
 
             return next();
@@ -177,7 +217,7 @@ export default class AuthenticationMiddleware {
                     }
                 }
             }
-        }, (req, res) => {
+        }, (req: AuthRequest, res: Response) => {
             try {
                 return res.json(req.auth);
             } catch (err) {

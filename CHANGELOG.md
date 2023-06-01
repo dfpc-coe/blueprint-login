@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.0.0
+
+- :rocket: Migrate to typescript
+
 ### v1.1.0
 
 - :bug: Apply schema definition to `body` param in schema
