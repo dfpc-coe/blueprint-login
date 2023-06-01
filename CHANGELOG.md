@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.0.1
+
+- :bug: fix release script by including build step
+
 ### v2.0.0
 
 - :rocket: Migrate to typescript
