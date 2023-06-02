@@ -18,6 +18,7 @@ export interface AuthRequest extends Request {
 
 export interface AuthRequestAuth {
     access: string;
+    email?: string;
     token?: string;
 }
 
@@ -31,6 +32,19 @@ function tokenParser(token: string, secret: string): AuthRequestAuth {
 
     if (decoded.token && typeof decoded.token === 'string') {
         auth.token = decoded.token;
+
+        const split = Buffer.from(decoded.token, 'base64').toString().split('}').map((ext) => { return ext + '}'});
+        if (split.length < 2) throw new Err(500, null, 'Unexpected TAK JWT Format');
+        const contents: {
+            exp: number;
+            user_name: string;
+            authorities: Array<string>;
+            jti: string;
+            client_id: string;
+            scope: Array<String>;
+        } = JSON.parse(split[1]);
+
+        auth.email = contents.user_name;
     }
 
     return auth;
