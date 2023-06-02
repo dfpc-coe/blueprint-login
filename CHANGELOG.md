@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.0.3
+
+- :arrow_up: Fix complaints about types in batch-error library
+
 ### v2.0.2
 
 - :bug: test dist inclusion
