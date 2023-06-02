@@ -24,11 +24,11 @@ export interface AuthRequest extends Request {
  * Authentication Middleware
  * @class
  *
- * @param {Object} opts Options Object
- * @param {String} opts.secret Signing Secret
- * @param {String} opts.unsafe Use unsafe Signing Secret
- * @param {String} [opts.group] LDAP Group to ensure user is a member of
- * @param {String} opts.api WebTak Marti API to authenticate against
+ * @param opts Options Object
+ * @param opts.secret Signing Secret
+ * @param opts.unsafe Use unsafe Signing Secret
+ * @param [opts.group] LDAP Group to ensure user is a member of
+ * @param opts.api WebTak Marti API to authenticate against
  */
 export default class AuthenticationMiddleware {
     name: string;
@@ -138,8 +138,8 @@ export default class AuthenticationMiddleware {
         });
 
         router.router.use((req: AuthRequest, res: Response, next: NextFunction) => {
-            if (req.header && req.header('authorization')) {
-                const authorization = req.header('authorization').split(' ');
+            if (req.header && typeof req.header('authorization')) {
+                const authorization = (req.header('authorization') || '').split(' ');
 
                 if (authorization[0].toLowerCase() !== 'bearer') {
                     return res.status(401).json({
