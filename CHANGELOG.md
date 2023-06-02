@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.1.0
+
+- :tada: Include WebTAK token in JWT Wrapper
+
 ### v2.0.3
 
 - :arrow_up: Fix complaints about types in batch-error library
