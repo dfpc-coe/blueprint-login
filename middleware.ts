@@ -12,12 +12,28 @@ export interface ConfigOpts {
 }
 
 export interface AuthRequest extends Request {
-    token?: {
-        access: string;
-    },
-    auth: {
-        access: string;
+    token?: AuthRequestAuth;
+    auth?: AuthRequestAuth;
+}
+
+export interface AuthRequestAuth {
+    access: string;
+    token?: string;
+}
+
+function tokenParser(token: string, secret: string): AuthRequestAuth {
+    const decoded = jwt.verify(token, secret);
+    if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+
+    const auth: AuthRequestAuth = {
+        access: decoded.access ? decoded.access : 'unknown'
+    };
+
+    if (decoded.token && typeof decoded.token === 'string') {
+        auth.token = decoded.token;
     }
+
+    return auth;
 }
 
 /**
@@ -130,7 +146,10 @@ export default class AuthenticationMiddleware {
                 }
 
                 return res.json({
-                    token: jwt.sign({ access: 'user' }, this.secret)
+                    token: jwt.sign({
+                        access: 'user',
+                        token: body.access_token
+                    }, this.secret)
                 });
             } catch (err) {
                 Err.respond(err, res);
@@ -157,18 +176,10 @@ export default class AuthenticationMiddleware {
 
                 try {
                     try {
-                        const decoded = jwt.verify(authorization[1], this.secret);
-                        if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
-                        req.auth = {
-                            access: decoded.access ? decoded.access : 'unknown'
-                        };
+                        req.auth = tokenParser(authorization[1], this.secret);
                     } catch (err) {
                         if (this.unsafe) {
-                            const decoded = jwt.verify(authorization[1], this.unsafe);
-                            if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
-                            req.auth = {
-                                access: decoded.access ? decoded.access : 'unknown'
-                            };
+                            req.auth = tokenParser(authorization[1], this.unsafe);
                         } else {
                             throw err;
                         }
@@ -181,18 +192,10 @@ export default class AuthenticationMiddleware {
 
                 try {
                     try {
-                        const decoded = jwt.verify(token, this.secret);
-                        if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
-                        req.token = {
-                            access: decoded.access ? decoded.access : 'unknown'
-                        };
+                        req.token = tokenParser(token, this.secret);
                     } catch (err) {
                         if (this.unsafe) {
-                            const decoded = jwt.verify(token, this.unsafe);
-                            if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
-                            req.token = {
-                                access: decoded.access ? decoded.access : 'unknown'
-                            };
+                            req.token = tokenParser(token, this.unsafe);
                         } else {
                             throw err;
                         }
