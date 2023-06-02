@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.2.0
+
+- :tada: Include email field from TAK JWT token
+
 ### v2.1.0
 
 - :tada: Include WebTAK token in JWT Wrapper
