@@ -20,6 +20,7 @@ export interface AuthRequestAuth {
     access: string;
     email?: string;
     token?: string;
+    layer?: number;
 }
 
 function tokenParser(token: string, secret: string): AuthRequestAuth {
@@ -29,6 +30,10 @@ function tokenParser(token: string, secret: string): AuthRequestAuth {
     const auth: AuthRequestAuth = {
         access: decoded.access ? decoded.access : 'unknown'
     };
+
+    if (decoded.layer && typeof decoded.layer === 'number') {{
+        auth.layer = decoded.layer;
+    }
 
     if (decoded.token && typeof decoded.token === 'string') {
         auth.token = decoded.token;
