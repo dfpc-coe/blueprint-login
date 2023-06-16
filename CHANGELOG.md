@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.2.2
+
+- :bug: Fix syntax bug
+
 ### v2.2.1
 
 - :bug: Include `layer` property in parsed token
