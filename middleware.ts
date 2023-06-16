@@ -31,7 +31,7 @@ function tokenParser(token: string, secret: string): AuthRequestAuth {
         access: decoded.access ? decoded.access : 'unknown'
     };
 
-    if (decoded.layer && typeof decoded.layer === 'number') {{
+    if (decoded.layer && typeof decoded.layer === 'number') {
         auth.layer = decoded.layer;
     }
 
@@ -46,7 +46,7 @@ function tokenParser(token: string, secret: string): AuthRequestAuth {
             authorities: Array<string>;
             jti: string;
             client_id: string;
-            scope: Array<String>;
+            scope: Array<string>;
         } = JSON.parse(split[1]);
 
         auth.email = contents.user_name;
