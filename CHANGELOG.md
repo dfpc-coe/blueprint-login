@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.2.1
+
+- :bug: Include `layer` property in parsed token
+
 ### v2.2.0
 
 - :tada: Include email field from TAK JWT token
