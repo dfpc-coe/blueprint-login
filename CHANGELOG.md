@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.2.3
+
+- :bug: Fix Bug where query tokens couldn't be parsed due to the header codepath always being chosen
+
 ### v2.2.2
 
 - :bug: Fix syntax bug
