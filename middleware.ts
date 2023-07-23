@@ -176,7 +176,7 @@ export default class AuthenticationMiddleware {
         });
 
         router.router.use((req: AuthRequest, res: Response, next: NextFunction) => {
-            if (req.header && typeof req.header('authorization')) {
+            if (req.header && req.header('authorization')) {
                 const authorization = (req.header('authorization') || '').split(' ');
 
                 if (authorization[0].toLowerCase() !== 'bearer') {
