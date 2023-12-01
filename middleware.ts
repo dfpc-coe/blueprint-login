@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { CookieJar, Cookie } from 'tough-cookie';
 import { CookieAgent } from 'http-cookie-agent/undici';
 import { Request, Response, NextFunction } from 'express';
+import EventEmitter from 'events';
 
 export interface ConfigOpts {
     secret: string;
@@ -65,7 +66,7 @@ function tokenParser(token: string, secret: string): AuthRequestAuth {
  * @param [opts.group] LDAP Group to ensure user is a member of
  * @param opts.api WebTak Marti API to authenticate against
  */
-export default class AuthenticationMiddleware {
+export default class AuthenticationMiddleware extends EventEmitter {
     name: string;
     secret: string;
     unsafe: string | null;
@@ -73,6 +74,7 @@ export default class AuthenticationMiddleware {
     group?: string | null;
 
     constructor(opts: ConfigOpts) {
+        super();
         this.name = 'Login Blueprint';
         this.secret = opts.secret;
         this.unsafe = opts.unsafe || null;
@@ -163,6 +165,8 @@ export default class AuthenticationMiddleware {
                         throw new Err(403, null, 'Insufficient Group Privileges');
                     }
                 }
+
+                this.emit('login', req.body);
 
                 return res.json({
                     token: jwt.sign({
