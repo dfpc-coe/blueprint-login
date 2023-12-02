@@ -10,9 +10,13 @@
 
 ## Version History
 
+### v2.4.0
+
+- :tada: Export the token parser so that it can be used for alternate protocols
+
 ### v2.3.0
 
-- :tadal: Emit `login` event when a successful login occurs
+- :tada: Emit `login` event when a successful login occurs
 
 ### v2.2.3
 

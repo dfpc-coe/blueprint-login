@@ -24,7 +24,7 @@ export interface AuthRequestAuth {
     layer?: number;
 }
 
-function tokenParser(token: string, secret: string): AuthRequestAuth {
+export function tokenParser(token: string, secret: string): AuthRequestAuth {
     const decoded = jwt.verify(token, secret);
     if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
 
