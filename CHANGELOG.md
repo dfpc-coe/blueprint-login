@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.5.0
+
+- :arrow_up: Update deps to support latest undici
+
 ### v2.4.0
 
 - :tada: Export the token parser so that it can be used for alternate protocols
