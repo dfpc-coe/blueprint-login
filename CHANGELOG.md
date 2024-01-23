@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v3.0.0
+
+- :bug: Use jwt.sub property to parse email (5.X TAK Release)
+
 ### v2.6.2
 
 - :bug: Fix type errors
