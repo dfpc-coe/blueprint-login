@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.6.2
+
+- :bug: Fix type errors
+
 ### v2.6.1
 
 - :rocket: Reduce use of `any` type
