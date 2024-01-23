@@ -114,7 +114,9 @@ export default class AuthenticationMiddleware extends EventEmitter {
                 url.searchParams.append('username', req.body.username);
                 url.searchParams.append('password', req.body.password);
 
-                const authres = await fetch(url);
+                const authres = await fetch(url, {
+                    method: 'POST'
+                });
 
                 if (!authres.ok) {
                     throw new Err(500, new Error(await authres.text()), 'Non-200 Response from Auth Server - Token');

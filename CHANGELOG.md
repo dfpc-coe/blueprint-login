@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v2.6.0
+
+- :rocket: Use `POST` for login grant
+
 ### v2.5.0
 
 - :arrow_up: Update deps to support latest undici
