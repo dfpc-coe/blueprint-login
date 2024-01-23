@@ -10,6 +10,11 @@
 
 ## Version History
 
+### v2.6.1
+
+- :rocket: Reduce use of `any` type
+- :arrow_up: Update to latest typescript defs
+
 ### v2.6.0
 
 - :rocket: Use `POST` for login grant

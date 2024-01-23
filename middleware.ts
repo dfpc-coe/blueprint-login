@@ -143,7 +143,6 @@ export default class AuthenticationMiddleware extends EventEmitter {
 
                     const groupres = await fetch(url, {
                         credentials: 'include',
-                    // @ts-ignore - dispatcher is not yet supported
                         dispatcher: agent
                     });
 
@@ -209,7 +208,7 @@ export default class AuthenticationMiddleware extends EventEmitter {
                             throw err;
                         }
                     }
-                } catch (err: any) {
+                } catch (err: Error) {
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
             } else if (req.query && req.query.token && typeof req.query.token === 'string') {
@@ -225,7 +224,7 @@ export default class AuthenticationMiddleware extends EventEmitter {
                             throw err;
                         }
                     }
-                } catch (err: any) {
+                } catch (err: Error) {
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
             }
