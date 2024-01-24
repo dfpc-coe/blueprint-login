@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v3.0.2
+
+- :bug: TAK Product Center rolled back the breaking OAuth endpoint in 5.0r38
+
 ### v3.0.1
 
 - :bug: Update OAuth API Endpoint (5.X TAK Release)

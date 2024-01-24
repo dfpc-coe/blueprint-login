@@ -109,7 +109,7 @@ export default class AuthenticationMiddleware extends EventEmitter {
             }
         }, async (req: Request, res: Response) => {
             try {
-                const url = new URL('/oauth2/token', this.api);
+                const url = new URL('/oauth/token', this.api);
                 url.searchParams.append('grant_type', 'password');
                 url.searchParams.append('username', req.body.username);
                 url.searchParams.append('password', req.body.password);
