@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v4.0.0
+
+- :rocket: Return Class and differentiate between resource vs User
+
 ### v3.0.2
 
 - :bug: TAK Product Center rolled back the breaking OAuth endpoint in 5.0r38

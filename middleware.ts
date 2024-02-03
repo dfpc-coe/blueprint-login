@@ -13,47 +13,81 @@ export interface ConfigOpts {
 }
 
 export interface AuthRequest extends Request {
-    token?: AuthRequestAuth;
-    auth?: AuthRequestAuth;
+    token?: AuthResource | AuthUser;
+    auth?: AuthResource | AuthUser;
 }
 
-export interface AuthRequestAuth {
+/**
+ * These will be looked up in the database to ensure they are still active
+ */
+export class AuthResource {
+    id: number | string;
+    access: string;
+
+    constructor(access: string, id: number | string) {
+        this.access = access;
+        this.id = id;
+    }
+}
+
+/**
+ * These tokens are ephemeral JWTs
+ */
+export class AuthUser {
     access: string;
     email?: string;
     token?: string;
     layer?: number;
+
+    constructor(access: string, email?: string, token?: string, layer?: number) {
+        this.access = access;
+        this.email = email;
+        this.token = token;
+        this.layer = layer;
+    }
+
+    is_user() {
+        return this.email && this.email.length;
+    }
 }
 
-export function tokenParser(token: string, secret: string): AuthRequestAuth {
-    const decoded = jwt.verify(token, secret);
-    if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+export function tokenParser(token: string, secret: string): AuthUser | AuthResource {
+    if (token.startsWith('etl.')) {
+        token = token.replace(/^etl\./, '');
+        const decoded = jwt.verify(token, secret);
+        if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+        if (!decoded.access || typeof decoded.access !== 'string') throw new Err(401, null, 'Invalid Token');
+        if (!decoded.id) throw new Err(401, null, 'Invalid Token');
+        return new AuthResource(decoded.access, decoded.id);
+    } else {
+        const decoded = jwt.verify(token, secret);
+        if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
 
-    const auth: AuthRequestAuth = {
-        access: decoded.access ? decoded.access : 'unknown'
-    };
+        const auth: {
+            access: string;
+            layer?: number;
+            email?: string;
+            token?: string;
+        } = {
+            access: decoded.access ? decoded.access : 'unknown'
+        };
 
-    if (decoded.layer && typeof decoded.layer === 'number') {
-        auth.layer = decoded.layer;
+        if (decoded.layer && typeof decoded.layer === 'number') {
+            auth.layer = decoded.layer;
+        }
+
+        if (decoded.token && typeof decoded.token === 'string') {
+            auth.token = decoded.token;
+
+            const split = Buffer.from(decoded.token, 'base64').toString().split('}').map((ext) => { return ext + '}'});
+            if (split.length < 2) throw new Err(500, null, 'Unexpected TAK JWT Format');
+
+            const contents: { sub: string; aud: string; nbf: number; exp: number; iat: number; } = JSON.parse(split[1]);
+            auth.email = contents.sub;
+        }
+
+        return new AuthUser(auth.access, auth.email, auth.token, auth.layer);
     }
-
-    if (decoded.token && typeof decoded.token === 'string') {
-        auth.token = decoded.token;
-
-        const split = Buffer.from(decoded.token, 'base64').toString().split('}').map((ext) => { return ext + '}'});
-        if (split.length < 2) throw new Err(500, null, 'Unexpected TAK JWT Format');
-
-        const contents: {
-            sub: string;
-            aud: string;
-            nbf: number;
-            exp: number;
-            iat: number;
-        } = JSON.parse(split[1]);
-
-        auth.email = contents.sub;
-    }
-
-    return auth;
 }
 
 /**
