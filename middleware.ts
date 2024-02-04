@@ -36,13 +36,11 @@ export class AuthResource {
 export class AuthUser {
     access: string;
     email?: string;
-    token?: string;
     layer?: number;
 
-    constructor(access: string, email?: string, token?: string, layer?: number) {
+    constructor(access: string, email?: string, layer?: number) {
         this.access = access;
         this.email = email;
-        this.token = token;
         this.layer = layer;
     }
 
@@ -67,7 +65,6 @@ export function tokenParser(token: string, secret: string): AuthUser | AuthResou
             access: string;
             layer?: number;
             email?: string;
-            token?: string;
         } = {
             access: decoded.access ? decoded.access : 'unknown'
         };
@@ -77,8 +74,6 @@ export function tokenParser(token: string, secret: string): AuthUser | AuthResou
         }
 
         if (decoded.token && typeof decoded.token === 'string') {
-            auth.token = decoded.token;
-
             const split = Buffer.from(decoded.token, 'base64').toString().split('}').map((ext) => { return ext + '}'});
             if (split.length < 2) throw new Err(500, null, 'Unexpected TAK JWT Format');
 
@@ -86,7 +81,7 @@ export function tokenParser(token: string, secret: string): AuthUser | AuthResou
             auth.email = contents.sub;
         }
 
-        return new AuthUser(auth.access, auth.email, auth.token, auth.layer);
+        return new AuthUser(auth.access, auth.email, auth.layer);
     }
 }
 

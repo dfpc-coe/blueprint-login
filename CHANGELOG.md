@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v4.1.0
+
+- :rocket: Remove optional `token` and just use `Profile.auth` in CloudTAK
+
 ### v4.0.0
 
 - :rocket: Return Class and differentiate between resource vs User
