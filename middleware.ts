@@ -12,6 +12,27 @@ export interface ConfigOpts {
     group?: string;
 }
 
+export enum AuthUserAccess {
+    ADMIN = 'admin',
+    USER = 'user'
+}
+
+function castUserAccessEnum(str: string): AuthUserAccess | undefined {
+  const value = AuthUserAccess[str as keyof typeof AuthUserAccess];
+  return value;
+}
+
+export enum AuthResourceAccess {
+    DATA = 'data',
+    LAYER = 'layer',
+    CONNECTION = 'connection'
+}
+
+function castResourceAccessEnum(str: string): AuthResourceAccess | undefined {
+  const value = AuthResourceAccess[str as keyof typeof AuthResourceAccess];
+  return value;
+}
+
 export interface AuthRequest extends Request {
     token?: AuthResource | AuthUser;
     auth?: AuthResource | AuthUser;
@@ -22,9 +43,11 @@ export interface AuthRequest extends Request {
  */
 export class AuthResource {
     id: number | string;
-    access: string;
+    access: AuthResourceAccess;
+    internal: boolean;
 
-    constructor(access: string, id: number | string) {
+    constructor(access: AuthResourceAccess, id: number | string, internal: boolean) {
+        this.internal = internal;
         this.access = access;
         this.id = id;
     }
@@ -34,14 +57,12 @@ export class AuthResource {
  * These tokens are ephemeral JWTs
  */
 export class AuthUser {
-    access: string;
-    email?: string;
-    layer?: number;
+    access: AuthUserAccess;
+    email: string;
 
-    constructor(access: string, email?: string, layer?: number) {
+    constructor(access: AuthUserAccess, email: string) {
         this.access = access;
         this.email = email;
-        this.layer = layer;
     }
 
     is_user() {
@@ -55,33 +76,29 @@ export function tokenParser(token: string, secret: string): AuthUser | AuthResou
         const decoded = jwt.verify(token, secret);
         if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
         if (!decoded.access || typeof decoded.access !== 'string') throw new Err(401, null, 'Invalid Token');
+        if (!decoded.internal || typeof decoded.internal !== 'boolean') decoded.internal = false;
         if (!decoded.id) throw new Err(401, null, 'Invalid Token');
-        return new AuthResource(decoded.access, decoded.id);
+        const access = castResourceAccessEnum(decoded.access);
+        if (!access) throw new Err(400, null, 'Invalid User Access Value');
+        return new AuthResource(access, decoded.id, decoded.internal);
     } else {
         const decoded = jwt.verify(token, secret);
         if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');
+        if (!decoded.email || typeof decoded.email !== 'string') throw new Err(401, null, 'Invalid Token');
+        if (!decoded.access || typeof decoded.access !== 'string') throw new Err(401, null, 'Invalid Token');
+
+        const access = castUserAccessEnum(decoded.access);
+        if (!access) throw new Err(400, null, 'Invalid User Access Value');
 
         const auth: {
-            access: string;
-            layer?: number;
-            email?: string;
+            access: AuthUserAccess;
+            email: string;
         } = {
-            access: decoded.access ? decoded.access : 'unknown'
+            email: decoded.email,
+            access
         };
 
-        if (decoded.layer && typeof decoded.layer === 'number') {
-            auth.layer = decoded.layer;
-        }
-
-        if (decoded.token && typeof decoded.token === 'string') {
-            const split = Buffer.from(decoded.token, 'base64').toString().split('}').map((ext) => { return ext + '}'});
-            if (split.length < 2) throw new Err(500, null, 'Unexpected TAK JWT Format');
-
-            const contents: { sub: string; aud: string; nbf: number; exp: number; iat: number; } = JSON.parse(split[1]);
-            auth.email = contents.sub;
-        }
-
-        return new AuthUser(auth.access, auth.email, auth.layer);
+        return new AuthUser(auth.access, auth.email);
     }
 }
 
@@ -119,21 +136,17 @@ export default class AuthenticationMiddleware extends EventEmitter {
                 type: 'object',
                 required: ['username', 'password'],
                 properties: {
-                    username: {
-                        type: 'string'
-                    },
-                    password: {
-                        type: 'string'
-                    }
+                    username: { type: 'string' },
+                    password: { type: 'string' }
                 }
             },
             res: {
                 type: 'object',
                 required: ['token'],
                 properties: {
-                    token: {
-                        type: 'string'
-                    }
+                    token: { type: 'string' },
+                    access: { type: 'string' },
+                    email: { type: 'string' }
                 }
             }
         }, async (req: Request, res: Response) => {
@@ -199,11 +212,14 @@ export default class AuthenticationMiddleware extends EventEmitter {
 
                 this.emit('login', req.body);
 
+                const split = Buffer.from(body.access_token, 'base64').toString().split('}').map((ext) => { return ext + '}'});
+                if (split.length < 2) throw new Err(500, null, 'Unexpected TAK JWT Format');
+                const contents: { sub: string; aud: string; nbf: number; exp: number; iat: number; } = JSON.parse(split[1]);
+
                 return res.json({
-                    token: jwt.sign({
-                        access: 'user',
-                        token: body.access_token
-                    }, this.secret)
+                    access: 'user',
+                    email: contents.sub,
+                    token: jwt.sign({ access: 'user', email: contents.sub }, this.secret)
                 });
             } catch (err) {
                 Err.respond(err, res);
