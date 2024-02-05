@@ -44,9 +44,16 @@ export interface AuthRequest extends Request {
 export class AuthResource {
     id: number | string;
     access: AuthResourceAccess;
+    token: string;
     internal: boolean;
 
-    constructor(access: AuthResourceAccess, id: number | string, internal: boolean) {
+    constructor(
+        token: string,
+        access: AuthResourceAccess,
+        id: number | string,
+        internal: boolean
+    ) {
+        this.token = token;
         this.internal = internal;
         this.access = access;
         this.id = id;
@@ -80,7 +87,7 @@ export function tokenParser(token: string, secret: string): AuthUser | AuthResou
         if (!decoded.id) throw new Err(401, null, 'Invalid Token');
         const access = castResourceAccessEnum(decoded.access);
         if (!access) throw new Err(400, null, 'Invalid User Access Value');
-        return new AuthResource(access, decoded.id, decoded.internal);
+        return new AuthResource(`etl.${token}`, access, decoded.id, decoded.internal);
     } else {
         const decoded = jwt.verify(token, secret);
         if (typeof decoded === 'string') throw new Err(400, null, 'Decoded JWT Should be Object');

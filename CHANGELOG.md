@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v4.3.0
+
+- :tada: Include Token for validation
+
 ### v4.2.0
 
 - :tada: Expose enums for access fields and make the difference between user and resource stricter
