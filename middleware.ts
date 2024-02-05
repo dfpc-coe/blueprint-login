@@ -86,7 +86,7 @@ export function tokenParser(token: string, secret: string): AuthUser | AuthResou
         if (!decoded.internal || typeof decoded.internal !== 'boolean') decoded.internal = false;
         if (!decoded.id) throw new Err(401, null, 'Invalid Token');
         const access = castResourceAccessEnum(decoded.access);
-        if (!access) throw new Err(400, null, 'Invalid User Access Value');
+        if (!access) throw new Err(400, null, 'Invalid Resource Access Value');
         return new AuthResource(`etl.${token}`, access, decoded.id, decoded.internal);
     } else {
         const decoded = jwt.verify(token, secret);
@@ -262,6 +262,7 @@ export default class AuthenticationMiddleware extends EventEmitter {
                         }
                     }
                 } catch (err: any) {
+                    if (err instanceof Err) return Err.respond(err, res);
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
             } else if (req.query && req.query.token && typeof req.query.token === 'string') {
@@ -278,6 +279,7 @@ export default class AuthenticationMiddleware extends EventEmitter {
                         }
                     }
                 } catch (err: any) {
+                    if (err instanceof Err) return Err.respond(err, res);
                     return Err.respond(new Err(401, err, 'Invalid Token'), res);
                 }
             }

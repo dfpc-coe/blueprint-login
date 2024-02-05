@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v4.3.1
+
+- :bug: Small verbage fix and bubble up errors
+
 ### v4.3.0
 
 - :tada: Include Token for validation
