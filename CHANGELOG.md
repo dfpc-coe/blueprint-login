@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v4.2.0
+
+- :tada: Expose enums for access fields and make the difference between user and resource stricter
+
 ### v4.1.0
 
 - :rocket: Remove optional `token` and just use `Profile.auth` in CloudTAK
