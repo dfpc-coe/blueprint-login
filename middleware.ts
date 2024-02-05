@@ -18,7 +18,7 @@ export enum AuthUserAccess {
 }
 
 function castUserAccessEnum(str: string): AuthUserAccess | undefined {
-  const value = AuthUserAccess[str as keyof typeof AuthUserAccess];
+  const value = AuthUserAccess[str.toUpperCase() as keyof typeof AuthUserAccess];
   return value;
 }
 
@@ -29,7 +29,7 @@ export enum AuthResourceAccess {
 }
 
 function castResourceAccessEnum(str: string): AuthResourceAccess | undefined {
-  const value = AuthResourceAccess[str as keyof typeof AuthResourceAccess];
+  const value = AuthResourceAccess[str.toUpperCase() as keyof typeof AuthResourceAccess];
   return value;
 }
 
