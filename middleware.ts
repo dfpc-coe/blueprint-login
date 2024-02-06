@@ -25,6 +25,7 @@ function castUserAccessEnum(str: string): AuthUserAccess | undefined {
 export enum AuthResourceAccess {
     DATA = 'data',
     LAYER = 'layer',
+    IMPORT = 'import',
     CONNECTION = 'connection'
 }
 

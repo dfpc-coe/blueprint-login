@@ -10,6 +10,10 @@
 
 ## Version History
 
+### v4.4.0
+
+- :rocket: Add `import` type
+
 ### v4.3.2
 
 - :bug: Use uppercase values for cast
